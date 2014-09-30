@@ -184,6 +184,7 @@ group :development do
   gem 'thin'
   gem 'faker'
   gem 'quiet_assets'
+  gem 'rails-erd'
 end
 
 group :development, :test do
