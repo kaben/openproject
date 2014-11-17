@@ -26,14 +26,40 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
-angular.module('openproject.helpers')
-  .constant('CUSTOM_FIELD_PREFIX', 'cf_')
-  .service('AutoCompleteHelper', require('./auto-complete-helper'))
-  .service('CustomFieldHelper', ['CUSTOM_FIELD_PREFIX', 'I18n', require(
-    './custom-field-helper')])
-  .service('PathHelper', require('./path-helper'))
-  .factory('SvgHelper', require('./svg-helper'))
-  .service('UrlParamsHelper', ['I18n', 'PaginationService', require(
-    './url-params-helper')])
-  .service('WorkPackageLoadingHelper', ['$timeout', require(
-    './work-package-loading-helper')]);
+module.exports = function() {
+  var getAtWhoParameters = function(url) {
+    return {
+      at: '#',
+      start_with_space: false,
+      search_key: 'id_subject',
+      tpl: '<li data-value="${atwho-at}${id}">${to_s}</li>',
+      limit: 10,
+      callbacks: {
+        remote_filter: function(query, callback) {
+          jQuery.getJSON(url, { q: query, scope: 'all' }, function(data) {
+            // atjs needs the search key to be a string
+            for (var i = data.length - 1; i >= 0; i--) {
+              data[i]['id_subject'] = data[i]['id'].toString() + ' ' + data[i]['subject'];
+            }
+            callback(data);
+          });
+        },
+        sorter: function(query, items, search_key) {
+          return items; // we do not sort
+        }
+      }
+    };
+  };
+
+  return {
+    enableTextareaAutoCompletion: function(textareas) {
+      angular.forEach(textareas, function(textarea) {
+        var url = jQuery(textarea).data('wp_autocomplete_url');
+
+        if (url !== undefined) {
+          jQuery(textarea).atwho(getAtWhoParameters(url));
+        }
+      });
+    }
+  };
+};
