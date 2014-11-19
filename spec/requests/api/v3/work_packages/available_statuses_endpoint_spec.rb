@@ -74,13 +74,7 @@ describe API::V3::WorkPackages::StatusesAPI do
         get get_path, type: new_type.name
       end
 
-      it 'should respond with 200' do
-        expect(subject.status).to eql(200)
-      end
-
-      it 'should return a json collection of all statuses' do
-        expect(parse_json(response.body, '_embedded/statuses/0/name')).to eql(new_status.name)
-      end
+      it_behaves_like 'collection response', 2, 2
     end
 
     context 'unauthorized user' do

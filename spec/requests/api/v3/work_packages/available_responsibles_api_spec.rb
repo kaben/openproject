@@ -47,16 +47,10 @@ describe API::V3::WorkPackages::WorkPackagesAPI do
     describe 'response' do
       before { allow(User).to receive(:current).and_return(admin) }
 
-      shared_examples_for 'returns available responsibles' do
+      shared_examples_for 'returns available responsibles' do |total, count|
         include_context 'request available responsibles'
 
-        subject { JSON.parse(response.body) }
-
-        it { expect(subject).to have_key('_embedded') }
-
-        it { expect(subject['_embedded']).to have_key('availableResponsibles') }
-
-        it { expect(subject['_embedded']['availableResponsibles'].count).to eq(available_responsible_count) }
+        it_behaves_like 'collection response', total, count
       end
 
       describe 'users' do
@@ -71,9 +65,7 @@ describe API::V3::WorkPackages::WorkPackagesAPI do
             allow(user).to receive(:updated_on).and_return(user.created_at)
           end
 
-          it_behaves_like 'returns available responsibles' do
-            let(:available_responsible_count) { 1 }
-          end
+          it_behaves_like 'returns available responsibles', 1, 1
         end
 
         context 'multiple users' do
@@ -87,9 +79,7 @@ describe API::V3::WorkPackages::WorkPackagesAPI do
             allow(user2).to receive(:updated_on).and_return(user.created_at)
           end
 
-          it_behaves_like 'returns available responsibles' do
-            let(:available_responsible_count) { 2 }
-          end
+          it_behaves_like 'returns available responsibles', 2, 2
         end
       end
 
@@ -105,9 +95,7 @@ describe API::V3::WorkPackages::WorkPackagesAPI do
             work_package.project.add_member! group, FactoryGirl.create(:role)
           end
 
-          it_behaves_like 'returns available responsibles' do
-            let(:available_responsible_count) { 0 }
-          end
+          it_behaves_like 'returns available responsibles', 0, 0
         end
       end
     end

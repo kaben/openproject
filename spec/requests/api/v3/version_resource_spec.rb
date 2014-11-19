@@ -27,14 +27,7 @@ describe 'API v3 Version resource' do
         get get_path
       end
 
-      it 'should respond with 200' do
-        expect(subject.status).to eq(200)
-      end
-
-      it 'should respond with versions, scoped to project' do
-        expect(subject.body).to include_json('Versions'.to_json).at_path('_type')
-        expect(subject.body).to have_json_size(4).at_path('_embedded/versions')
-      end
+      it_behaves_like 'collection response', 4, 4
     end
   end
 end

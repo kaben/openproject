@@ -1,4 +1,3 @@
-#-- encoding: UTF-8
 #-- copyright
 # OpenProject is a project management system.
 # Copyright (C) 2012-2014 the OpenProject Foundation (OPF)
@@ -28,33 +27,15 @@
 #++
 
 require 'spec_helper'
-require 'rack/test'
 
-describe 'API v3 Status resource' do
-  include Rack::Test::Methods
+shared_examples_for 'collection response' do |total, count|
+  subject { response.body }
 
-  let(:current_user) { FactoryGirl.create(:user) }
-  let(:role) { FactoryGirl.create(:role, permissions: []) }
-  let(:project) { FactoryGirl.create(:project, is_public: false) }
-  let(:statuses) { FactoryGirl.create_list(:status, 4) }
+  it { expect(response.status).to eql(200) }
 
-  describe '#get' do
-    subject(:response) { last_response }
+  it { is_expected.to be_json_eql(count.to_json).at_path('count') }
 
-    context 'logged in user' do
-      let(:get_path) { '/api/v3/statuses' }
-      before do
-        allow(User).to receive(:current).and_return current_user
-        member = FactoryGirl.build(:member, user: current_user, project: project)
-        member.role_ids = [role.id]
-        member.save!
+  it { is_expected.to be_json_eql(total.to_json).at_path('total') }
 
-        statuses
-
-        get get_path
-      end
-
-      it_behaves_like 'collection response', 4, 4
-    end
-  end
+  it { is_expected.to have_json_size(count) .at_path('_embedded/elements') }
 end

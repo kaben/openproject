@@ -54,14 +54,7 @@ describe 'API v3 Priority resource' do
         get get_path
       end
 
-      it 'should respond with 200' do
-        expect(subject.status).to eq(200)
-      end
-
-      it 'should respond with priorities, scoped to project' do
-        expect(subject.body).to include_json('Priorities'.to_json).at_path('_type')
-        expect(subject.body).to have_json_size(2).at_path('_embedded/priorities')
-      end
+      it_behaves_like 'collection response', 2, 2
     end
   end
 end

@@ -1,4 +1,3 @@
-#-- encoding: UTF-8
 #-- copyright
 # OpenProject is a project management system.
 # Copyright (C) 2012-2014 the OpenProject Foundation (OPF)
@@ -28,33 +27,19 @@
 #++
 
 require 'spec_helper'
-require 'rack/test'
 
-describe 'API v3 Status resource' do
-  include Rack::Test::Methods
+describe ::API::V3::Users::UserCollectionRepresenter do
+  let(:users) {
+    FactoryGirl.build_list(:user,
+                           3,
+                           created_on: Time.now,
+                           updated_on: Time.now)
+  }
+  let(:representer) { described_class.new(users, 42, 'work_package/1/watchers') }
 
-  let(:current_user) { FactoryGirl.create(:user) }
-  let(:role) { FactoryGirl.create(:role, permissions: []) }
-  let(:project) { FactoryGirl.create(:project, is_public: false) }
-  let(:statuses) { FactoryGirl.create_list(:status, 4) }
+  context 'generation' do
+    subject(:collection) { representer.to_json }
 
-  describe '#get' do
-    subject(:response) { last_response }
-
-    context 'logged in user' do
-      let(:get_path) { '/api/v3/statuses' }
-      before do
-        allow(User).to receive(:current).and_return current_user
-        member = FactoryGirl.build(:member, user: current_user, project: project)
-        member.role_ids = [role.id]
-        member.save!
-
-        statuses
-
-        get get_path
-      end
-
-      it_behaves_like 'collection response', 4, 4
-    end
+    it_behaves_like 'collection', 42, 3, 'work_package/1/watchers'
   end
 end

@@ -1,4 +1,3 @@
-#-- encoding: UTF-8
 #-- copyright
 # OpenProject is a project management system.
 # Copyright (C) 2012-2014 the OpenProject Foundation (OPF)
@@ -28,33 +27,31 @@
 #++
 
 require 'spec_helper'
-require 'rack/test'
 
-describe 'API v3 Status resource' do
-  include Rack::Test::Methods
+shared_examples_for 'collection' do |total, count, self_link, decorator = nil|
+  it { expect(collection).to be_json_eql('Collection'.to_json).at_path('_type') }
 
-  let(:current_user) { FactoryGirl.create(:user) }
-  let(:role) { FactoryGirl.create(:role, permissions: []) }
-  let(:project) { FactoryGirl.create(:project, is_public: false) }
-  let(:statuses) { FactoryGirl.create_list(:status, 4) }
+  describe 'decorator' do
+    let(:collected_class) {
+      described_class.to_s.gsub(/(?<class>\w*)Collection/, '\k<class>').constantize
+    }
+    let(:expected_decorator) { decorator || collected_class }
+    let(:actual_decorator) { representer.instance_variable_get(:@decorator) }
 
-  describe '#get' do
-    subject(:response) { last_response }
+    it { expect(actual_decorator).to be(expected_decorator) }
+  end
 
-    context 'logged in user' do
-      let(:get_path) { '/api/v3/statuses' }
-      before do
-        allow(User).to receive(:current).and_return current_user
-        member = FactoryGirl.build(:member, user: current_user, project: project)
-        member.role_ids = [role.id]
-        member.save!
+  describe 'quantities' do
+    it { expect(collection).to be_json_eql(total.to_json).at_path('total') }
 
-        statuses
+    it { expect(collection).to be_json_eql(count.to_json).at_path('count') }
 
-        get get_path
-      end
+    it { expect(collection).to have_json_size(count).at_path('_embedded/elements') }
+  end
 
-      it_behaves_like 'collection response', 4, 4
-    end
+  describe '_links' do
+    let(:href) { "/api/v3/#{self_link}".to_json }
+
+    it { expect(collection).to be_json_eql(href).at_path('_links/self/href') }
   end
 end
